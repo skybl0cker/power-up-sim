@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Up 2018 — 3D FRC Simulator</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="hud">
+  <div id="hud-top"><span id="timer">0:00</span><span id="phase">PRE-MATCH</span><span id="score">0</span></div>
+  <div id="hud-sub"><span id="sub1"></span><span id="sub2"></span><span id="sub3"></span></div>
+  <div id="hud-bottom"><span id="holding"></span><span id="hint"></span></div>
+</div>
+<div id="help" hidden>
+  <h2>Power Up 2018 — Controls</h2>
+  <table>
+    <tr><td>W/S</td><td>Throttle forward/back (tank drive)</td></tr>
+    <tr><td>A/D</td><td>Turn left/right</td></tr>
+    <tr><td>Q/E</td><td>Fine rotate</td></tr>
+    <tr><td>F</td><td>Pick up cube / take from portal</td></tr>
+    <tr><td>1/2/3</td><td>Elevator: stow / switch / scale height</td></tr>
+    <tr><td>Space</td><td>Score held cube (scale/switch/vault)</td></tr>
+    <tr><td>X</td><td>Drop held cube</td></tr>
+    <tr><td>Z/X/C</td><td>Power-ups: FORCE / BOOST / LEVITATE (vault cubes)</td></tr>
+    <tr><td>K</td><td>Climb rung (endgame, near scale)</td></tr>
+    <tr><td>C</td><td>Camera: follow / driver / orbit / top</td></tr>
+    <tr><td>P / R / H</td><td>Pause / restart / help</td></tr>
+  </table>
+  <p>Score cubes on the SCALE and SWITCH to earn ownership, feed the VAULT for power-ups, climb the scale rung in the endgame.</p>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
