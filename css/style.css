@@ -1,0 +1,19 @@
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0a0d13;
+  font-family: "Segoe UI", system-ui, sans-serif; color: #e8ecf1; }
+#app, #app canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#hud-top { position: absolute; top: 10px; left: 0; right: 0; text-align: center;
+  font-size: 22px; font-weight: 600; letter-spacing: 2px; }
+#hud-top span { margin: 0 18px; }
+#phase { color: #7fd4ff; }
+#hud-sub { position: absolute; top: 44px; left: 0; right: 0; text-align: center; font-size: 14px; opacity: .85; }
+#hud-sub span { margin: 0 12px; }
+#hud-bottom { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 14px; opacity: .9; }
+#hud-bottom span { margin: 0 12px; }
+#help { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(10, 14, 20, .94); border: 1px solid #3a4a5f; border-radius: 10px;
+  padding: 22px 30px; max-width: 460px; z-index: 10; }
+#help h2 { margin-top: 0; font-size: 18px; }
+#help table { border-collapse: collapse; font-size: 14px; }
+#help td { padding: 3px 10px 3px 0; }
+#help td:first-child { font-weight: 700; color: #7fd4ff; white-space: nowrap; }
