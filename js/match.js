@@ -147,7 +147,7 @@ export class Match {
     if (input.hit('x')) this.tryDrop();
     if (input.hit('z')) this.playPowerup('force');
     if (input.hit('b')) this.playPowerup('boost');
-    if (input.hit('c')) this.playPowerup('levitate');
+    if (input.hit('l')) this.playPowerup('levitate'); // L (was C: conflicted with camera)
     // elevator presets
     if (input.hit('1')) r.elevTarget = 0;
     if (input.hit('2')) r.elevTarget = 0.45;
