@@ -26,7 +26,7 @@ export const CFG = {
     ownEdge: 0.15,              // plate edge <= 6 in = owned
     distFromWall: 4.27,         // 14 ft from alliance wall
   },
-  CUBE: { w: 0.33, h: 0.27 },   // 1'1" x 1'1" x 11" milk crate
+  CUBE: { w: 0.33, h: 0.27, mass: 0.68, restitution: 0.32, friction: 0.55 }, // 13" foam cube ~1.5 lb
   VAULT: { cols: 3, perCol: 3, colW: 0.34 },
   MATCH: { auto: 15, teleop: 135, endgame: 30 },
   ROBOT: { maxV: 4.4, maxW: 5.0, accel: 8.0, size: 0.84 }, // ~14.4 ft/s, matches reference sims
@@ -35,4 +35,17 @@ export const CFG = {
     TELE_GAIN: 1, TELE_SEC: 1,
     VAULT_CUBE: 5, PARK: 5, CLIMB: 30,
   },
+  // Robot select: styled after elite 2018 teams (visual homage, not replicas)
+  ROBOTS: [
+    { id: 'r1678', team: '1678', name: 'Lemon Zest', style: 'wcd',
+      accent: 0x1c5fd6, plate: 0x9fb4d8,
+      desc: 'West Coast tank drive · twin-column elevator · side-roller intake' },
+    { id: 'r254', team: '254', name: 'Poof-style', style: 'swerve',
+      accent: 0x0a2a6b, plate: 0xc9a227,
+      desc: 'Swerve drive · center elevator · top-roller claw' },
+    { id: 'r1323', team: '1323', name: 'MadTown-style', style: 'swerve',
+      accent: 0xb02020, plate: 0x2a2d33,
+      desc: 'Swerve drive · single-column elevator · wide intake' },
+  ],
+  AUDIO: { enabled: true },
 };
