@@ -78,9 +78,9 @@ function loop(now) {
   let dt = Math.min((now - last) / 1000, 0.05);
   last = now;
   if (!match.paused) {
-    input.poll();
     match.update(dt, input);
     robot.updateVisual(dt);
+    input.poll(); // clear edge-triggered keys AFTER all consumers read them
   }
   if (input.helpToggled) { /* handled in input */ }
   updateCamera(cam, dt, robot, input, field);
