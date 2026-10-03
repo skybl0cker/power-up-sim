@@ -179,18 +179,23 @@ export class Robot {
     b.add(this.hook);
   }
 
-  // tank drive: ax.y throttle, ax.x turn. Field-frame velocity.
+  // holonomic drive (matches firstroboticsim/rebuildsim feel):
+  // ax.y throttle (robot-forward), ax.x strafe (-1 = left), ax.r turn (+1 = CCW)
   drive(dt, ax) {
     const maxV = CFG.ROBOT.maxV, maxW = CFG.ROBOT.maxW;
-    const thr = ax.y, turn = -ax.x + ax.r * 0.5;
-    const vT = thr * maxV, wT = turn * maxW;
-    const k = 1 - Math.exp(-5 * dt);
-    const v = (this._v || 0) + (vT - (this._v || 0)) * k;
-    const w = this.w + (wT - this.w) * k;
-    this._v = v; this.w = w;
-    this.heading += w * dt;
-    this.vx = Math.cos(this.heading) * v;
-    this.vy = Math.sin(this.heading) * v;
+    const k = 1 - Math.exp(-8 * dt); // snappy accel, ~27 ft/s^2 feel
+    let rvx = ax.y * maxV, rvy = -ax.x * maxV;
+    const n = Math.hypot(rvx, rvy);
+    if (n > maxV) { rvx *= maxV / n; rvy *= maxV / n; }
+    const dw = ax.r * maxW;
+    this._rvx = (this._rvx || 0) + (rvx - (this._rvx || 0)) * k;
+    this._rvy = (this._rvy || 0) + (rvy - (this._rvy || 0)) * k;
+    this.w = (this.w || 0) + (dw - (this.w || 0)) * k;
+    this.heading += this.w * dt;
+    // robot frame -> field frame
+    const c = Math.cos(this.heading), s = Math.sin(this.heading);
+    this.vx = c * this._rvx - s * this._rvy;
+    this.vy = s * this._rvx + c * this._rvy;
     this.pos.x += this.vx * dt; this.pos.y += this.vy * dt;
     const hx = CFG.FIELD.L / 2 - 0.7, hy = CFG.FIELD.W / 2 - 0.7;
     this.pos.x = Math.max(-hx, Math.min(hx, this.pos.x));
@@ -200,7 +205,7 @@ export class Robot {
   }
 
   updateVisual(dt) {
-    const v = this._v || 0;
+    const v = Math.hypot(this._rvx || 0, this._rvy || 0);
     this.wheelSpinL += (v + this.w * 0.35) * dt * 14;
     this.wheelSpinR += (v - this.w * 0.35) * dt * 14;
     for (const w of this.wheelsL) w.rotation.y = this.wheelSpinL;
