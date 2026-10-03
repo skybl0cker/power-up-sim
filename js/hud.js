@@ -20,6 +20,6 @@ export function updateHUD(match, robot) {
     : '';
   $('holding').textContent = robot.held ? 'Holding: CUBE' : '';
   $('hint').textContent = match.phase === 'teleop'
-    ? 'W/S throttle · A/D turn · F pickup · Space score · X drop · 1/2/3 elevator · Z/X/C power-ups · K climb (endgame) · C camera'
+    ? 'W/S throttle · A/D turn · F pickup · Space score · X drop · 1/2/3 elevator · Z/B/L power-ups · K climb (endgame) · C camera'
     : match.phase === 'auto' ? 'Autonomous running…' : '';
 }
