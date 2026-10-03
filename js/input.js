@@ -22,13 +22,16 @@ export class Input {
   }
   down(k) { return !!this.keys[k]; }
   hit(k) { return !!this.pressed[k]; }
-  // field-relative drive axes: x strafe (A/D), y forward (W/S), rot (Q/E)
+  // holonomic drive axes (matches firstroboticsim/rebuildsim):
+  // y = throttle (W/S), x = strafe (A/D, -1 = left), r = turn (J/L, +1 = CCW)
   driveAxes() {
     let x = 0, y = 0, r = 0;
     if (this.down('w') || this.down('arrowup')) y += 1;
     if (this.down('s') || this.down('arrowdown')) y -= 1;
-    if (this.down('a') || this.down('arrowleft')) x -= 1;
-    if (this.down('d') || this.down('arrowright')) x += 1;
+    if (this.down('a')) x -= 1;
+    if (this.down('d')) x += 1;
+    if (this.down('j') || this.down('arrowleft')) r += 1;
+    if (this.down('l') || this.down('arrowright')) r -= 1;
     if (this.down('q')) r += 1;
     if (this.down('e')) r -= 1;
     const n = Math.hypot(x, y);
