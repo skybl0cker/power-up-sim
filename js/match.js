@@ -2,6 +2,7 @@
 // Official 2018 scoring values (see scoring.js SCORE).
 import { CFG } from './config.js';
 import { SCORE, fmtTime } from './scoring.js';
+import { audio } from './audio.js';
 
 export class Match {
   constructor(field, robot, pieces) {
@@ -21,6 +22,17 @@ export class Match {
     this.autoPath = null;
     this.endNotified = false;
     this.stageField();
+  }
+
+  setRobot(r) { this.robot = r; }
+
+  restagePreload() {
+    // fresh preloaded cube for a newly selected robot (menu only)
+    const r = this.robot;
+    const pre = this.pieces.add(0, 0, 0.5, 'held');
+    r.held = pre;
+    this.pieces.scene.remove(pre.mesh);
+    r.setHeld(true); r.armTarget = 0.12;
   }
 
   stageField() {
@@ -56,6 +68,9 @@ export class Match {
     this.gainAwarded = { scale: false, switch: false };
     this.powerups = { force: 0, boost: 0, levitate: false };
     this.vaultStock = 0; this.climbing = false; this.climbed = false;
+    this._warned = false; this.pickupT = 0; this.scoreT = 0;
+    const r = this.robot;
+    r.hookTarget = 0; r.group.position.z = 0; r.group.rotation.z = r.heading;
     this.buildAutoPath();
   }
 
@@ -79,10 +94,11 @@ export class Match {
     if (input.hit('r')) { this.reset(); return; }
     if (this.paused) return;
     this.t += dt;
-    this.field.update(dt);
+    this.field.update(dt, this.phase, this.endgame());
     const A = CFG.MATCH;
     if (this.phase === 'auto' && this.t >= A.auto) { this.phase = 'teleop'; this.t = 0; this.onTeleopStart(); }
-    else if (this.phase === 'teleop' && this.t >= A.teleop) { this.phase = 'done'; this.onMatchEnd(); }
+    else if (this.phase === 'teleop' && this.t >= A.teleop) { this.phase = 'done'; this.onMatchEnd(); audio.horn(1.2); }
+    if (!this._warned && this.endgame()) { this._warned = true; audio.warning(); }
     if (this.phase === 'auto') this.runAuto(dt, input);
     else if (this.phase === 'teleop') this.runTeleop(dt, input);
     this.accrue(dt);
@@ -109,8 +125,8 @@ export class Match {
     const wp = this.autoPath[this.wpIdx];
     if (!wp) { r.drive(dt, { x: 0, y: 0, r: 0 }); return; }
     // pre-raise the elevator while driving to a scoring waypoint
-    if (wp.act === 'scoreScale') r.elevTarget = 1.05;
-    else if (wp.act === 'scoreSwitch') r.elevTarget = 0.45;
+    if (wp.act === 'scoreScale') r.setElev(1.05);
+    else if (wp.act === 'scoreSwitch') r.setElev(0.45);
     const dx = wp.x - r.pos.x, dy = wp.y - r.pos.y;
     const d = Math.hypot(dx, dy);
     if (d < 0.35) {
@@ -136,7 +152,7 @@ export class Match {
     this.robot.held = null; this.robot.setHeld(false);
   }
 
-  onTeleopStart() { this.gainAwarded = { scale: false, switch: false }; }
+  onTeleopStart() { this.gainAwarded = { scale: false, switch: false }; audio.horn(0.7); this._warned = false; }
 
   // ---- teleop ----
   runTeleop(dt, input) {
@@ -156,21 +172,22 @@ export class Match {
     if (input.hit('b')) this.playPowerup('boost');
     if (input.hit('l')) this.playPowerup('levitate'); // L (was C: conflicted with camera)
     // elevator presets
-    if (input.hit('1')) r.elevTarget = 0;
-    if (input.hit('2')) r.elevTarget = 0.45;
-    if (input.hit('3')) r.elevTarget = 1.05;
+    if (input.hit('1')) r.setElev(0);
+    if (input.hit('2')) r.setElev(0.45);
+    if (input.hit('3')) r.setElev(1.05);
     // climb (endgame only, near blue rung/platform)
     const endgame = this.t >= CFG.MATCH.teleop - CFG.MATCH.endgame;
     if (input.hit('k') && endgame && !this.climbing) {
       const d = Math.hypot(r.pos.x + 0.38, r.pos.y);
-      if (d < 1.6) { this.climbing = true; this.climbT = 0; }
+      if (d < 1.6) { this.climbing = true; this.climbT = 0; r.hookTarget = 1; audio.hiss(0.4, 0.35); }
     }
     if (this.climbing) {
       this.climbT += dt;
-      const k = Math.min(1, this.climbT / 3);
+      const k = Math.min(1, this.climbT / 3.2);
       r.group.position.z = k * 0.42;
+      r.group.position.x = r.pos.x + Math.sin(this.climbT * 3) * 0.02 * (1 - k);
       r.vx = r.vy = r.w = 0;
-      if (k >= 1) this.climbed = true;
+      if (k >= 1) { this.climbed = true; r.hookTarget = 0.6; }
     }
   }
 
@@ -179,9 +196,9 @@ export class Match {
     if (r.held) return;
     const p = this.pieces.nearest(r.pos.x, r.pos.y, 1.3);
     if (p) {
-      p.state = 'held'; r.held = p;
-      this.pieces.scene.remove(p.mesh);
+      this.pieces.grab(p); r.held = p;
       r.rollerSpin = 0.6; r.armTarget = 0.12; r.setHeld(true);
+      audio.hiss(0.2, 0.25);
     }
   }
 
@@ -205,6 +222,7 @@ export class Match {
       this.vaultStock++;
       this.score += SCORE.VAULT_CUBE;
       r.armTarget = 0.55; r.setHeld(false);
+      audio.hiss(0.25, 0.3);
       return;
     }
     if (this.near(0, 0, 1.9)) {
@@ -228,9 +246,8 @@ export class Match {
   tryDrop() {
     const r = this.robot, h = r.held;
     if (!h) return;
-    h.state = 'floor'; h.x = r.pos.x + 0.6; h.y = r.pos.y; h.z = CFG.CUBE.h / 2;
-    h.mesh.position.set(h.x, h.y, h.z);
-    this.pieces.scene.add(h.mesh);
+    const dx = Math.cos(r.heading), dy = Math.sin(r.heading);
+    this.pieces.release(h, r.pos.x + dx * 0.7, r.pos.y + dy * 0.7);
     r.held = null; r.armTarget = 0.55; r.setHeld(false);
   }
 
