@@ -1,5 +1,6 @@
 // Camera rig. Z-up world: camera.up = (0,0,1) always.
 import * as THREE from 'three';
+import { CFG } from './config.js';
 
 export function initCamera(dom) {
   const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 200);
@@ -14,8 +15,8 @@ export function initCamera(dom) {
       else if (preset === 'driver') { this.mode = 'driver'; }
       else if (preset === 'field') { this.mode = 'orbit'; this.yaw = 0.6; this.pitch = 0.65; this.dist = 16; }
       else if (preset === 'scale') { this.mode = 'orbit'; this.yaw = 1.1; this.pitch = 0.42; this.dist = 8; }
-      else if (preset === 'robot') { this.mode = 'follow'; this.yaw = -0.5; this.pitch = 0.35; this.dist = 6; }
-      else { this.mode = 'follow'; this.yaw = 0; this.pitch = 0.45; this.dist = 7; }
+      else if (preset === 'robot') { this.mode = 'follow'; this.followYaw = -0.5; this.pitch = 0.35; this.dist = 6; }
+      else { this.mode = 'follow'; this.followYaw = -0.55; this.pitch = 0.45; this.dist = 7; }
       this._snap = true;
     },
   };
@@ -38,7 +39,8 @@ export function updateCamera(rig, dt, robot, input, field) {
     rig.mode = rig.modes[(i + 1) % rig.modes.length];
   }
   if (rig._drag.dragging && (rig.mode === 'follow' || rig.mode === 'orbit')) {
-    rig.yaw -= input.mdx * 0.005;
+    if (rig.mode === 'follow' && rig.followYaw !== undefined) rig.followYaw -= input.mdx * 0.005;
+    else rig.yaw -= input.mdx * 0.005;
     rig.pitch = Math.min(1.4, Math.max(0.08, rig.pitch + input.mdy * 0.005));
   }
   const cam = rig.camera;
@@ -57,11 +59,18 @@ export function updateCamera(rig, dt, robot, input, field) {
     cam.position.set(p.x + rig.dist * cp * Math.cos(rig.yaw), p.y + rig.dist * cp * Math.sin(rig.yaw), rig.dist * sp + 0.5);
     cam.lookAt(0, 0, 0.8);
   } else {
-    // follow: behind robot relative to its heading; camera may sit in the
-    // (semi-transparent) alliance-station area so it never hugs the robot
-    let bx = p.x - Math.cos(heading) * rig.dist * cp;
-    let by = p.y - Math.sin(heading) * rig.dist * cp;
-    let bz = Math.max(1.4, rig.dist * sp + 0.6);
+    // follow: FIXED-YAW follow cam (matches firstroboticsim feel) — the camera
+    // holds a constant world-space viewing angle and tracks the robot, so the
+    // field stays in fixed screen positions. Mild auto-zoom: wider at midfield,
+    // closer near the walls/station. Drag with the mouse to adjust the angle.
+    if (rig.followYaw === undefined) rig.followYaw = -0.55;
+    const yaw = rig.followYaw;
+    const ex = Math.abs(p.x) / (CFG.FIELD.L / 2), ey = Math.abs(p.y) / (CFG.FIELD.W / 2);
+    const edge = Math.min(1, Math.max(ex, ey)); // 0 midfield -> 1 at wall
+    const zdist = rig.dist * (1.18 - 0.38 * edge);
+    let bx = p.x + Math.cos(yaw) * zdist * cp;
+    let by = p.y + Math.sin(yaw) * zdist * cp;
+    let bz = Math.max(1.4, zdist * sp + 0.6);
     bx = Math.max(-10.8, Math.min(10.8, bx));
     by = Math.max(-6.0, Math.min(6.0, by));
     if (rig._snap) { cam.position.set(bx, by, bz); rig._snap = false; }
