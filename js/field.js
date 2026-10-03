@@ -46,6 +46,32 @@ function carpetTexture() {
     g.strokeStyle = '#f2f4f6'; g.lineWidth = 5;
     g.strokeRect(X(Math.min(x0, x1)), Y(y0), Math.abs(x1 - x0) * SX, (y1 - y0) * SY);
   }
+  // NULL TERRITORY: green rectangles top-center and bottom-center (per game manual diagram)
+  for (const sy of [1, -1]) {
+    const x0 = -1.0, x1 = 1.0, y0 = sy > 0 ? 2.2 : -3.2, y1 = sy > 0 ? 3.2 : -2.2;
+    g.fillStyle = 'rgba(46,139,87,0.30)';
+    g.fillRect(X(x0), Y(y0), (x1 - x0) * SX, (y1 - y0) * SY);
+    g.strokeStyle = '#2e8b57'; g.lineWidth = 5;
+    g.strokeRect(X(x0), Y(y0), (x1 - x0) * SX, (y1 - y0) * SY);
+  }
+  // PLATFORM ZONE: yellow outline around the scale, red/blue halves
+  {
+    const x0 = -3.0, x1 = 3.0, y0 = -1.7, y1 = 1.7;
+    g.fillStyle = 'rgba(214,58,47,0.07)'; g.fillRect(X(x0), Y(y0), (0 - x0) * SX, (y1 - y0) * SY);
+    g.fillStyle = 'rgba(28,95,214,0.07)'; g.fillRect(X(0), Y(y0), (x1 - 0) * SX, (y1 - y0) * SY);
+    g.strokeStyle = '#f7c948'; g.lineWidth = 6;
+    g.strokeRect(X(x0), Y(y0), (x1 - x0) * SX, (y1 - y0) * SY);
+    line(0, y0, 0, y1, '#f7c948', 5);
+  }
+  // STARTING LINES: short white lines just in front of each alliance wall
+  for (const s of [1, -1]) line(s * 7.6, -1.8, s * 7.6, 1.8, '#f2f4f6', 6);
+  // POWER CUBE ZONES: yellow outlines around the 6-cube stacks by each switch
+  for (const s of [1, -1]) {
+    const swx = s * (F.L / 2 - 4.27);
+    const x0 = swx + (s < 0 ? 0.6 : -1.5), x1 = swx + (s < 0 ? 1.5 : -0.6);
+    g.strokeStyle = '#f7c948'; g.lineWidth = 5;
+    g.strokeRect(X(Math.min(x0, x1)), Y(-1.9), Math.abs(x1 - x0) * SX, 3.4 * SY);
+  }
   // portal zones along alliance walls
   for (const s of [1, -1]) for (const sy of [1, -1]) {
     const py = sy * (F.W / 2 - 0.61);
@@ -267,12 +293,13 @@ export function buildField(scene) {
     const cx = s * (F.L / 2 - SW.distFromWall);
     scene.add(box(0.25, 0.25, SW.pivotH, towerMat, cx, 0, SW.pivotH / 2));
     const sw = new Seesaw(scene, cx, SW.pivotH, SW.plateW, SW.plateD, SW.maxTilt, plateMat, railM);
-    // perimeter fence: posts + rails
+    // perimeter fence: posts + rails (full rectangle per manual)
     const fence = mat(0x4a5058, { metalness: 0.5, roughness: 0.5 });
-    for (const fy of [-0.75, 0.75]) {
+    for (const fy of [-1.0, 1.0]) {
       scene.add(box(1.9, 0.05, 0.5, fence, cx, fy, 0.25));
       for (const fx of [-0.9, 0, 0.9]) scene.add(box(0.05, 0.05, 0.55, fence, cx + fx, fy, 0.275));
     }
+    for (const fx of [-0.95, 0.95]) scene.add(box(0.05, 2.05, 0.5, fence, cx + fx, 0, 0.25));
     return sw;
   };
   field.switchBlue = mkSwitch(-1);
