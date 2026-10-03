@@ -6,15 +6,48 @@
 <title>Power Up 2018 — 3D FRC Simulator</title>
 <link rel="stylesheet" href="css/style.css">
 <script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+} }
 </script>
 </head>
 <body>
 <div id="app"></div>
-<div id="hud">
-  <div id="hud-top"><span id="timer">0:00</span><span id="phase">PRE-MATCH</span><span id="score">0</span></div>
-  <div id="hud-sub"><span id="sub1"></span><span id="sub2"></span><span id="sub3"></span></div>
+<div id="hud" style="display:none">
+  <div id="fms-bar">
+    <div class="fms-team blue"><span class="fms-label">BLUE</span><span id="score">0</span></div>
+    <div id="fms-center"><span id="timer">0:00</span><span id="phase">PRE-MATCH</span></div>
+    <div class="fms-team red"><span id="red-score">0</span><span class="fms-label">RED</span></div>
+  </div>
+  <div id="fms-sub">
+    <span id="own-scale" class="own-chip">SCALE —</span>
+    <span id="own-switch" class="own-chip">SWITCH —</span>
+    <span id="vault-meter"></span>
+    <span id="sub2"></span>
+  </div>
   <div id="hud-bottom"><span id="holding"></span><span id="hint"></span></div>
+  <div id="sub1"></div><div id="sub3"></div>
+</div>
+<div id="menu">
+  <div id="menu-inner">
+    <div id="menu-main">
+      <div class="menu-kicker">FIRST ROBOTICS COMPETITION · 2018</div>
+      <h1 class="menu-title">POWER&nbsp;UP</h1>
+      <div class="menu-sub">3D Simulator</div>
+      <div class="menu-buttons">
+        <button id="btn-start" class="menu-btn primary">START MATCH</button>
+        <button id="btn-robots" class="menu-btn">ROBOT</button>
+        <button id="btn-how" class="menu-btn">HOW TO PLAY</button>
+      </div>
+      <div class="menu-foot">W/S drive · A/D strafe · J/L turn · hold F pickup · hold Space score</div>
+    </div>
+    <div id="robot-select" hidden>
+      <h2>SELECT ROBOT</h2>
+      <div id="robot-cards"></div>
+      <button id="btn-back" class="menu-btn">BACK</button>
+    </div>
+  </div>
 </div>
 <div id="help" hidden>
   <h2>Power Up 2018 — Controls</h2>
