@@ -1,4 +1,4 @@
-// Power cubes: 13" milk-crate style cubes.
+// Power cubes: 13" milk-crate style cubes with rigid-body physics.
 import * as THREE from 'three';
 import { CFG } from './config.js';
 
@@ -30,21 +30,37 @@ export function makeCubeMesh() {
 }
 
 export class PieceManager {
-  constructor(scene) {
+  constructor(scene, physics) {
     this.scene = scene;
-    this.pieces = []; // {mesh, x, y, z, state: 'floor'|'held'|'scale'|'switch'|'vault'|'portal'}
+    this.physics = physics;
+    this.pieces = []; // {mesh, x, y, z, state, body}
   }
   add(x, y, z = CFG.CUBE.h / 2, state = 'floor') {
     const mesh = makeCubeMesh();
     mesh.position.set(x, y, z);
     this.scene.add(mesh);
-    const p = { mesh, x, y, z, state };
+    const p = { mesh, x, y, z, state, body: null };
     this.pieces.push(p);
+    if (this.physics && (state === 'floor' || state === 'portal')) this.physics.addCube(p);
     return p;
   }
   remove(p) {
+    if (this.physics) this.physics.removeCube(p);
     this.scene.remove(p.mesh);
     this.pieces.splice(this.pieces.indexOf(p), 1);
+  }
+  // take a floor cube into the intake: strip physics, caller attaches mesh
+  grab(p) {
+    if (this.physics) this.physics.removeCube(p);
+    p.state = 'held';
+    this.scene.remove(p.mesh);
+  }
+  // release a held cube back to the world as a live physics body
+  release(p, x, y) {
+    p.state = 'floor';
+    this.scene.add(p.mesh);
+    p.mesh.quaternion.identity();
+    if (this.physics) this.physics.dropCube(p, x, y);
   }
   nearest(x, y, range) {
     let best = null, bd = range;
