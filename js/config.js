@@ -29,7 +29,7 @@ export const CFG = {
   CUBE: { w: 0.33, h: 0.27 },   // 1'1" x 1'1" x 11" milk crate
   VAULT: { cols: 3, perCol: 3, colW: 0.34 },
   MATCH: { auto: 15, teleop: 135, endgame: 30 },
-  ROBOT: { maxV: 3.6, maxW: 4.5, accel: 5.0, size: 0.84 },
+  ROBOT: { maxV: 4.4, maxW: 5.0, accel: 8.0, size: 0.84 }, // ~14.4 ft/s, matches reference sims
   SCORE: {
     AUTO_LINE: 5, AUTO_GAIN: 2, AUTO_SEC: 2,
     TELE_GAIN: 1, TELE_SEC: 1,
