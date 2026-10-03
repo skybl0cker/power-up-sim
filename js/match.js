@@ -93,7 +93,7 @@ export class Match {
   reset() {
     this.phase = 'pre'; this.t = 0;
     const r = this.robot;
-    r.pos.set(-7.6, 0, 0); r.heading = 0; r.vx = r.vy = r.w = 0;
+    r.pos.set(-7.6, 0, 0); r.heading = 0; r.vx = r.vy = r.w = 0; r._rvx = r._rvy = 0;
     r.held = null; r.group.position.z = 0; this.climbing = false;
   }
 
@@ -124,7 +124,7 @@ export class Match {
     while (err < -Math.PI) err += 2 * Math.PI;
     const turn = Math.max(-1, Math.min(1, err * 2));
     const thr = Math.max(0, Math.min(1, d / 1.5)) * Math.max(0.25, 1 - Math.abs(err));
-    r.drive(dt, { x: -turn, y: thr, r: 0 });
+    r.drive(dt, { x: 0, y: thr, r: turn });
   }
   autoScore(which) {
     const h = this.robot.held;
@@ -142,8 +142,15 @@ export class Match {
   runTeleop(dt, input) {
     const r = this.robot;
     if (!this.climbing) r.drive(dt, input.driveAxes());
-    if (input.hit('f')) this.tryPickup();
-    if (input.hit(' ')) this.tryScore();
+    // hold-to-intake / hold-to-score (matches reference sims)
+    if (input.down('f') && !r.held) {
+      this.pickupT = (this.pickupT || 0) + dt;
+      if (this.pickupT > 0.25) { this.tryPickup(); this.pickupT = 0; }
+    } else this.pickupT = 0;
+    if (input.down(' ') && r.held) {
+      this.scoreT = (this.scoreT || 0) + dt;
+      if (this.scoreT > 0.4) { this.tryScore(); this.scoreT = 0; }
+    } else this.scoreT = 0;
     if (input.hit('x')) this.tryDrop();
     if (input.hit('z')) this.playPowerup('force');
     if (input.hit('b')) this.playPowerup('boost');
